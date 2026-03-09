@@ -1,0 +1,29 @@
+[package]
+name = "mastary"
+version = "0.0.1-alpha.0+init"
+edition = "2024"
+readme = "README.md"
+
+description = "HTTP MITM proxy"
+repository = "https://github.com/null-proto/mastary.git"
+homepage = "https://github.com/null-proto/mastary.git"
+
+license = "MIT OR Apache-2.0"
+
+keywords = ["http", "proxy", "https", "mitm"]
+categories = [ "mitm-http-proxy" , "utilities" , "network-programming" ]
+
+exclude = [ ".env*" , ".direnv" ]
+include = ["/src", "README.md" , "LICENSE.md" ]
+
+publish = false
+
+
+[dependencies]
+iced = { version = "0.14.0", features = ["tokio"] }
+tokio = { version = "1.50.0", features = ["net", "fs", "time"] }
+tracing = { version = "0.1.44", features = ["async-await"] }
+tracing-subscriber = { version = "0.3.22", features = ["tracing"] }
+
+[lints.rust]
+unsafe_code = { level = "warn", priority = 0 }
