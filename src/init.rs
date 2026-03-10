@@ -5,7 +5,9 @@ use crate::ui;
 
 pub fn init_ui() {
   info!("initializing ui ...");
-  let font = iced::Font::with_name("VictorMono Nerd Font Mono");
+  let mut font = iced::Font::with_name("VictorMono Nerd Font Mono");
+  font.style = iced::font::Style::Normal;
+  font.weight = iced::font::Weight::Semibold;
 
   // iced::daemon(|| AppMain::default(), AppMain::update, AppMain::view)
 
