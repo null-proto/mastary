@@ -1,4 +1,6 @@
-use iced::widget::pane_grid::{Pane, ResizeEvent};
+use iced::widget::pane_grid::Pane;
+use iced::widget::pane_grid::ResizeEvent;
+use iced::widget::pane_grid::DragEvent;
 
 #[allow(unused_variables)]
 pub fn update(state: &mut super::State, message: super::UpdateMessage) {
@@ -38,6 +40,14 @@ fn ui_update(state: &mut super::State, message: super::events::UiEvents) {
 
     PaneResize( ResizeEvent { split , ratio} ) => {
       state.pane.resize(split, ratio);
+    }
+
+    PaneDragges(DragEvent::Picked { pane }) => { }
+
+    PaneDragges(DragEvent::Canceled { pane }) => { }
+
+    PaneDragges(DragEvent::Dropped { pane, target }) => {
+      state.pane.drop(pane, target);
     }
 
     PaneDrag(_) => {}

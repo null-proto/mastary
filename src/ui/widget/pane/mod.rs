@@ -14,6 +14,8 @@ use iced::widget::button;
 use crate::ui::State;
 use crate::ui::UpdateMessage;
 
+pub mod title;
+
 #[derive(Default, Clone, Debug)]
 pub enum PaneWindow {
   #[default]

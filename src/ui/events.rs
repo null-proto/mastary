@@ -1,7 +1,7 @@
 use iced::widget::pane_grid::Axis;
-use iced::widget::pane_grid::DragEvent;
 use iced::widget::pane_grid::Pane;
 use iced::widget::pane_grid::ResizeEvent;
+use iced::widget::pane_grid::DragEvent;
 
 #[derive(Clone, Debug, Default)]
 pub enum UiEvents {
@@ -13,6 +13,7 @@ pub enum UiEvents {
   PaneCreateDummy(Pane, Axis),
   PaneClose(Pane),
   PaneResize(ResizeEvent),
+  PaneDragges(DragEvent),
 
   #[default]
   UnConditionalUpdate,
