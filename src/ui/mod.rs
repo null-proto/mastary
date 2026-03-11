@@ -7,15 +7,20 @@ pub use view::view;
 pub use update::update;
 
 
+use widget::pane::PaneWindow;
+
 #[derive(Clone , Debug)]
 pub struct State {
-  pane: iced::widget::pane_grid::State<PaneState>
+  pane: iced::widget::pane_grid::State<PaneWindow>,
+
+  context_menu: bool
 }
 
 impl State {
   pub fn new() -> Self {
     Self {
-      pane: iced::widget::pane_grid::State::new(PaneState::Pane1).0,
+      pane: iced::widget::pane_grid::State::new(PaneWindow::Dummy).0,
+      context_menu: false
     }
   }
 }
@@ -35,9 +40,3 @@ impl UpdateMessage {
   }
 }
 
-#[derive(Default, Clone , Debug)]
-enum PaneState {
-  #[default]
-  Pane1,
-  Pane2,
-}

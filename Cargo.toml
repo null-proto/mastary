@@ -27,3 +27,10 @@ tracing-subscriber = { version = "0.3.22", features = ["tracing"] }
 
 [lints.rust]
 unsafe_code = { level = "warn", priority = 0 }
+
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = 3

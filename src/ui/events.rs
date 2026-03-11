@@ -1,10 +1,19 @@
-use iced::widget::pane_grid;
+use iced::widget::pane_grid::Axis;
+use iced::widget::pane_grid::DragEvent;
+use iced::widget::pane_grid::Pane;
+use iced::widget::pane_grid::ResizeEvent;
 
-
-#[derive(Clone, Debug , Default)]
+#[derive(Clone, Debug, Default)]
 pub enum UiEvents {
-  PaneDrag(pane_grid::DragEvent),
+  PaneDrag(DragEvent),
+
+  ContextMenuCreate,
+  ContextMenuCloseAll,
+
+  PaneCreateDummy(Pane, Axis),
+  PaneClose(Pane),
+  PaneResize(ResizeEvent),
 
   #[default]
-  UnConditionalUpdate
+  UnConditionalUpdate,
 }

@@ -9,7 +9,6 @@ pub fn init_ui() {
   font.style = iced::font::Style::Normal;
   font.weight = iced::font::Weight::Semibold;
 
-  // iced::daemon(|| AppMain::default(), AppMain::update, AppMain::view)
 
   iced::application( || { ui::State::new() } , ui::update, ui::view)
     .decorations(false)
