@@ -15,11 +15,12 @@ use crate::ui::State;
 use crate::ui::UpdateMessage;
 
 pub mod title;
+pub mod dummy;
 
 #[derive(Default, Clone, Debug)]
 pub enum PaneWindow {
   #[default]
-  Dummy,
+  Dummy(dummy::Dummy),
 
   MasterFlow,
   // Flow,
@@ -29,43 +30,41 @@ pub enum PaneWindow {
   // Viewer,
 }
 
+#[derive(Clone, Debug)]
+pub struct PaneMeta {
+  pub name: String,
+}
+
 #[allow(unused_variables)]
 impl<'a> PaneWindow {
-  pub fn present(
+  pub fn view(
     &self,
     state: &State,
     pane: &Pane,
     is_zen_mode: bool,
   ) -> Element<'static, UpdateMessage> {
     match self {
-      Self::Dummy => Self::dummy_pane(pane.clone()),
+      Self::Dummy( dummy ) => dummy.view(state, pane.clone(), is_zen_mode),
 
       Self::MasterFlow => text!("MasterFlow not yet").into(),
     }
   }
 
-  fn dummy_pane(pane: Pane) -> Element<'static, UpdateMessage> {
-    container(
-      container(
-        column![
-          text!("This is a dummy pane"),
-          button(
-            text("Create new")
-            .size(Pixels::from(12))
-            .width(Length::Fill)
-          )
-          .on_press(UpdateMessage::Ui(crate::ui::events::UiEvents::PaneCreateDummy(pane, Axis::Vertical) ) )
-          .width(Length::Shrink)
-        ]
-        .width(Length::Shrink)
-        .spacing(20)
-        .padding(10),
-      )
-      .style(container::bordered_box),
-    )
-    .center(Length::Fill)
-    .padding(10)
-    .style(container::bordered_box)
-    .into()
+  pub fn title_bar(
+    &self,
+    state: &State,
+    pane: &Pane,
+    is_zen_mode: bool,
+  ) -> Element<'static, UpdateMessage> {
+    match self {
+      Self::Dummy( dummy ) => dummy.title_bar(),
+
+      Self::MasterFlow => text!("MasterFlow not yet").into(),
+    }
   }
+
+  pub fn new_dummy_pane() -> Self {
+    Self::Dummy(dummy::Dummy::new())
+  }
+
 }

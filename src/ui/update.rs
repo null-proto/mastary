@@ -8,7 +8,6 @@ pub fn update(state: &mut super::State, message: super::UpdateMessage) {
 
   match message {
     Ui(event) => {
-      tracing::debug!("EVENT UI: {:?}", event);
       ui_update(state, event);
     }
 
@@ -35,16 +34,16 @@ fn ui_update(state: &mut super::State, message: super::events::UiEvents) {
     }
 
     PaneCreateDummy(pane, axis) => {
-      state.pane.split(axis, pane, PaneWindow::Dummy);
+      state.pane.split(axis, pane, PaneWindow::new_dummy_pane() );
     }
 
     PaneResize( ResizeEvent { split , ratio} ) => {
       state.pane.resize(split, ratio);
     }
 
-    PaneDragges(DragEvent::Picked { pane }) => { }
+    PaneDragges(DragEvent::Picked { pane: _ }) => { }
 
-    PaneDragges(DragEvent::Canceled { pane }) => { }
+    PaneDragges(DragEvent::Canceled { pane: _ }) => { }
 
     PaneDragges(DragEvent::Dropped { pane, target }) => {
       state.pane.drop(pane, target);

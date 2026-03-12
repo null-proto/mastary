@@ -29,8 +29,17 @@ tracing-subscriber = { version = "0.3.22", features = ["tracing"] }
 unsafe_code = { level = "warn", priority = 0 }
 
 
+[profile.dev]
+lto = "thin"
+codegen-units = 14
+opt-level = 1
+
+# [profile.release]
+# strip = true
+# lto = true
+# codegen-units = 1
+# opt-level = 2
+
 [profile.release]
-strip = true
-lto = true
+lto = "fat"
 codegen-units = 1
-opt-level = 3

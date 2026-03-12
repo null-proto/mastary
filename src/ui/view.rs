@@ -15,19 +15,20 @@ use iced::widget::text;
 use crate::ui::UpdateMessage;
 use crate::ui::events::UiEvents;
 use crate::ui::widget::pane::PaneWindow;
-use crate::ui::widget::pane::title::title;
+use crate::ui::widget::pane::title::Title;
 use crate::ui::widget::sidebar::sidebar;
 
 use super::events;
 
 pub fn view(state: &super::State) -> Element<'_, UpdateMessage> {
   let pane_surface = pane_grid(&state.pane, |pane, pane_state, is_zen_mode| {
+
     pane_grid::Content::new(
-      container(pane_state.present(&state, &pane, is_zen_mode))
+      container(pane_state.view(&state, &pane, is_zen_mode))
         .padding(10)
         .style(container::bordered_box),
     )
-    .title_bar(pane_grid::TitleBar::new(title()))
+    .title_bar( pane_state.title_bar() )
   })
   .spacing(10)
   .on_drag(|e| UpdateMessage::Ui(UiEvents::PaneDragges(e)))
