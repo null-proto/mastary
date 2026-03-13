@@ -2,12 +2,11 @@ use tracing::info;
 
 use std::collections::HashSet as Set;
 
-use iced::window::Id as WinID;
-use iced::window::Event as WinEvent;
+use iced::Settings;
 use iced::Task;
 use iced::Theme;
-use iced::Settings;
-
+use iced::window::Event as WinEvent;
+use iced::window::Id as WinID;
 
 pub fn init_ui() {
   info!("initializing ui ...");
@@ -44,14 +43,14 @@ struct Mastary {
 #[derive(Debug, Clone)]
 enum Message {
   InitCompleted,
-  Window(WinID , WinEvent),
+  Window(WinID, WinEvent),
 }
 
 impl Default for Mastary {
   fn default() -> Self {
     let font = iced::Font::with_name("VictorMono Nerd Font Mono");
 
-    Self { 
+    Self {
       windows: Set::new(),
       theme: Theme::Nord,
       global_scal_factor: 1.2f32,
@@ -69,48 +68,28 @@ impl Mastary {
 
     let mut tasks: Vec<Task<Message>> = vec![];
 
-    let (window_id, window_open_task) = iced::window::open(
-      iced::window::Settings::default()
-    );
+    let (window_id, window_open_task) = iced::window::open(iced::window::Settings::default());
 
-    tasks.push( window_open_task.map(|_|Message::InitCompleted));
+    tasks.push(window_open_task.map(|_| Message::InitCompleted));
 
-    (mastary, iced::Task::batch(tasks) )
+    (mastary, iced::Task::batch(tasks))
   }
-
 
   pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
     iced::widget::column!["hello"].into()
   }
 
-
   pub fn update(&mut self, msg: Message) {
     match msg {
-      Message::Window(id, e) => {
-
-        match e {
-          iced::window::Event::Opened { position, size } => {
-            tracing::info!("new window {}", id);
-            self.windows.insert(id);
-          }
-
-          iced::window::Event::Closed => {
-            self.windows.remove(&id);
-            tracing::info!("window {} closed", id);
-          }
-
-          _ => {
-
-          }
-
-        }
+      Message::Window(window_id, window_event) => {
+        update_window_events(self, window_id, window_event);
       }
 
       Message::InitCompleted => {}
     }
   }
 
-  pub fn title(&self , id: WinID) -> String {
+  pub fn title(&self, id: WinID) -> String {
     self.title.clone()
   }
 
@@ -126,7 +105,23 @@ impl Mastary {
     self.settings.clone()
   }
 
-  pub fn scale(&self , id : WinID) -> f32 {
+  pub fn scale(&self, id: WinID) -> f32 {
     self.global_scal_factor
+  }
+}
+
+fn update_window_events(state: &mut Mastary, window_id: WinID, window_event: WinEvent) {
+  match window_event {
+    iced::window::Event::Opened { position:_, size:_ } => {
+      tracing::info!("new window {}", window_id);
+      state.windows.insert(window_id);
+    }
+
+    iced::window::Event::Closed => {
+      state.windows.remove(&window_id);
+      tracing::info!("window {} closed", window_id);
+    }
+
+    _ => {}
   }
 }
