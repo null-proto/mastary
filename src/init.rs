@@ -1,6 +1,7 @@
 use tracing::info;
 
 use std::collections::HashSet as Set;
+use std::default;
 
 use iced::Settings;
 use iced::Task;
@@ -19,14 +20,29 @@ pub fn init_ui() {
   //   .run()
   //   .unwrap();
 
-  iced::daemon(move || Mastary::new(), Mastary::update, Mastary::view)
+
+  // font setup seems skeptic
+  //
+  let default_font = iced::Font::with_name("VictorMono Nerd Font Mono");
+
+  match iced::daemon(move || Mastary::new(), Mastary::update, Mastary::view)
     .title(Mastary::title)
     .theme(Mastary::theme)
     .subscription(Mastary::subscribe)
     .scale_factor(Mastary::scale)
-    .run()
-    .unwrap();
+    .default_font(default_font)
+    .run() {
 
+      Ok(_) => {}
+
+      Err(e) => {
+        tracing::error!("FATAL: {}", e.to_string());
+        tracing::debug!("FATAL: {:?}", e);
+      }
+    }
+
+
+  // it blocks
   info!("exiting ...");
 }
 
@@ -35,7 +51,7 @@ struct Mastary {
   windows: Set<iced::window::Id>,
   theme: Theme,
   global_scal_factor: f32,
-  default_font: iced::Font,
+
   settings: Settings,
   title: String,
 }
@@ -54,7 +70,6 @@ impl Default for Mastary {
       windows: Set::new(),
       theme: Theme::Nord,
       global_scal_factor: 1.2f32,
-      default_font: font,
       settings: Settings::default(),
       title: String::default(),
     }
@@ -72,7 +87,7 @@ impl Mastary {
 
     tasks.push(window_open_task.map(|_| Message::InitCompleted));
 
-    (mastary, iced::Task::batch(tasks))
+    (mastary, Task::batch(tasks))
   }
 
   pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
