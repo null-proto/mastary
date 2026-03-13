@@ -30,8 +30,8 @@ unsafe_code = { level = "warn", priority = 0 }
 
 
 [profile.dev]
-lto = "thin"
-codegen-units = 14
+# lto = "thin"
+# codegen-units = 14
 opt-level = 1
 
 # [profile.release]

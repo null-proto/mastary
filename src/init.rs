@@ -1,22 +1,132 @@
 use tracing::info;
 
-use crate::ui;
+use std::collections::HashSet as Set;
+
+use iced::window::Id as WinID;
+use iced::window::Event as WinEvent;
+use iced::Task;
+use iced::Theme;
+use iced::Settings;
 
 
 pub fn init_ui() {
   info!("initializing ui ...");
-  let mut font = iced::Font::with_name("VictorMono Nerd Font Mono");
-  font.style = iced::font::Style::Normal;
-  font.weight = iced::font::Weight::Semibold;
 
+  // iced::application( || { ui::State::new() } , ui::update, ui::view)
+  //   .decorations(false)
+  //   .default_font(font)
+  //   .theme(iced::Theme::CatppuccinMocha)
+  //   // .subscription(AppMain::subscribe)
+  //   .run()
+  //   .unwrap();
 
-  iced::application( || { ui::State::new() } , ui::update, ui::view)
-    .decorations(false)
-    .default_font(font)
-    .theme(iced::Theme::CatppuccinMocha)
-    // .subscription(AppMain::subscribe)
+  iced::daemon(move || Mastary::new(), Mastary::update, Mastary::view)
+    .title(Mastary::title)
+    .theme(Mastary::theme)
+    .subscription(Mastary::subscribe)
+    .scale_factor(Mastary::scale)
     .run()
     .unwrap();
-  info!("exiting ...");
 
+  info!("exiting ...");
+}
+
+#[derive(Debug, Clone)]
+struct Mastary {
+  windows: Set<iced::window::Id>,
+  theme: Theme,
+  global_scal_factor: f32,
+  default_font: iced::Font,
+  settings: Settings,
+  title: String,
+}
+
+#[derive(Debug, Clone)]
+enum Message {
+  InitCompleted,
+  Window(WinID , WinEvent),
+}
+
+impl Default for Mastary {
+  fn default() -> Self {
+    let font = iced::Font::with_name("VictorMono Nerd Font Mono");
+
+    Self { 
+      windows: Set::new(),
+      theme: Theme::Nord,
+      global_scal_factor: 1.2f32,
+      default_font: font,
+      settings: Settings::default(),
+      title: String::default(),
+    }
+  }
+}
+
+#[allow(unused)]
+impl Mastary {
+  pub fn new() -> (Self, iced::Task<Message>) {
+    let mastary = Mastary::default();
+
+    let mut tasks: Vec<Task<Message>> = vec![];
+
+    let (window_id, window_open_task) = iced::window::open(
+      iced::window::Settings::default()
+    );
+
+    tasks.push( window_open_task.map(|_|Message::InitCompleted));
+
+    (mastary, iced::Task::batch(tasks) )
+  }
+
+
+  pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
+    iced::widget::column!["hello"].into()
+  }
+
+
+  pub fn update(&mut self, msg: Message) {
+    match msg {
+      Message::Window(id, e) => {
+
+        match e {
+          iced::window::Event::Opened { position, size } => {
+            tracing::info!("new window {}", id);
+            self.windows.insert(id);
+          }
+
+          iced::window::Event::Closed => {
+            self.windows.remove(&id);
+            tracing::info!("window {} closed", id);
+          }
+
+          _ => {
+
+          }
+
+        }
+      }
+
+      Message::InitCompleted => {}
+    }
+  }
+
+  pub fn title(&self , id: WinID) -> String {
+    self.title.clone()
+  }
+
+  pub fn subscribe(&self) -> iced::Subscription<Message> {
+    iced::Subscription::none()
+  }
+
+  pub fn theme(&self, id: WinID) -> iced::Theme {
+    self.theme.clone()
+  }
+
+  pub fn settings(&self) -> iced::Settings {
+    self.settings.clone()
+  }
+
+  pub fn scale(&self , id : WinID) -> f32 {
+    self.global_scal_factor
+  }
 }
