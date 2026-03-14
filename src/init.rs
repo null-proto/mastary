@@ -1,13 +1,14 @@
 use tracing::info;
 
 use std::collections::HashSet as Set;
-use std::default;
 
 use iced::Settings;
 use iced::Task;
 use iced::Theme;
 use iced::window::Event as WinEvent;
 use iced::window::Id as WinID;
+
+use crate::panel;
 
 pub fn init_ui() {
   info!("initializing ui ...");
@@ -29,11 +30,13 @@ pub fn init_ui() {
     .title(Mastary::title)
     .theme(Mastary::theme)
     .subscription(Mastary::subscribe)
-    .scale_factor(Mastary::scale)
+    .scale_factor(Mastary::scale_factor)
     .default_font(default_font)
     .run() {
 
-      Ok(_) => {}
+      Ok(_) => {
+        tracing::info!("daemon completes its job");
+      }
 
       Err(e) => {
         tracing::error!("FATAL: {}", e.to_string());
@@ -43,15 +46,15 @@ pub fn init_ui() {
 
 
   // it blocks
+  //
   info!("exiting ...");
 }
 
 #[derive(Debug, Clone)]
-struct Mastary {
-  windows: Set<iced::window::Id>,
+pub struct Mastary {
+  windows: Set<WinID>,
   theme: Theme,
-  global_scal_factor: f32,
-
+  global_scale_factor: f32,
   settings: Settings,
   title: String,
 }
@@ -60,16 +63,15 @@ struct Mastary {
 enum Message {
   InitCompleted,
   Window(WinID, WinEvent),
+  Panel(panel::Message)
 }
 
 impl Default for Mastary {
   fn default() -> Self {
-    let font = iced::Font::with_name("VictorMono Nerd Font Mono");
-
     Self {
       windows: Set::new(),
       theme: Theme::Nord,
-      global_scal_factor: 1.2f32,
+      global_scale_factor: 1.2f32,
       settings: Settings::default(),
       title: String::default(),
     }
@@ -100,6 +102,10 @@ impl Mastary {
         update_window_events(self, window_id, window_event);
       }
 
+      Message::Panel(msg) => {
+
+      }
+
       Message::InitCompleted => {}
     }
   }
@@ -120,8 +126,8 @@ impl Mastary {
     self.settings.clone()
   }
 
-  pub fn scale(&self, id: WinID) -> f32 {
-    self.global_scal_factor
+  pub fn scale_factor(&self, id: WinID) -> f32 {
+    self.global_scale_factor
   }
 }
 
