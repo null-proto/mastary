@@ -21,7 +21,6 @@ pub fn init_ui() {
   //   .run()
   //   .unwrap();
 
-
   // font setup seems skeptic
   //
   let default_font = iced::Font::with_name("VictorMono Nerd Font Mono");
@@ -32,18 +31,17 @@ pub fn init_ui() {
     .subscription(Mastary::subscribe)
     .scale_factor(Mastary::scale_factor)
     .default_font(default_font)
-    .run() {
-
-      Ok(_) => {
-        tracing::info!("daemon completes its job");
-      }
-
-      Err(e) => {
-        tracing::error!("FATAL: {}", e.to_string());
-        tracing::debug!("FATAL: {:?}", e);
-      }
+    .run()
+  {
+    Ok(_) => {
+      tracing::info!("daemon completes its job");
     }
 
+    Err(e) => {
+      tracing::error!("FATAL: {}", e.to_string());
+      tracing::debug!("FATAL: {:?}", e);
+    }
+  }
 
   // it blocks
   //
@@ -53,6 +51,7 @@ pub fn init_ui() {
 #[derive(Debug, Clone)]
 pub struct Mastary {
   windows: Set<WinID>,
+  pub(crate) panels: iced::widget::pane_grid::State<panel::Panels>,
   theme: Theme,
   global_scale_factor: f32,
   settings: Settings,
@@ -60,16 +59,19 @@ pub struct Mastary {
 }
 
 #[derive(Debug, Clone)]
-enum Message {
+pub enum Message {
   InitCompleted,
   Window(WinID, WinEvent),
-  Panel(panel::Message)
+  Panel(panel::Message),
 }
 
 impl Default for Mastary {
   fn default() -> Self {
+    let (state, _panel) = iced::widget::pane_grid::State::new(panel::Panels::Greetings);
+
     Self {
       windows: Set::new(),
+      panels: state,
       theme: Theme::Nord,
       global_scale_factor: 1.2f32,
       settings: Settings::default(),
@@ -93,7 +95,10 @@ impl Mastary {
   }
 
   pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
-    iced::widget::column!["hello"].into()
+    let panel = panel::Panels::view(self)
+      .map(Message::Panel);
+
+    panel
   }
 
   pub fn update(&mut self, msg: Message) {
@@ -103,7 +108,7 @@ impl Mastary {
       }
 
       Message::Panel(msg) => {
-
+        panel::Panels::update(self, msg);
       }
 
       Message::InitCompleted => {}
@@ -133,7 +138,10 @@ impl Mastary {
 
 fn update_window_events(state: &mut Mastary, window_id: WinID, window_event: WinEvent) {
   match window_event {
-    iced::window::Event::Opened { position:_, size:_ } => {
+    iced::window::Event::Opened {
+      position: _,
+      size: _,
+    } => {
       tracing::info!("new window {}", window_id);
       state.windows.insert(window_id);
     }
