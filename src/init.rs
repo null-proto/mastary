@@ -1,14 +1,13 @@
 use tracing::info;
 
-use std::collections::HashSet as Set;
-
 use iced::Settings;
 use iced::Task;
 use iced::Theme;
 use iced::window::Event as WinEvent;
 use iced::window::Id as WinID;
 
-use crate::panel;
+use crate::winctl;
+use crate::winctl::WindowController;
 
 pub fn init_ui() {
   info!("initializing ui ...");
@@ -50,8 +49,7 @@ pub fn init_ui() {
 
 #[derive(Debug, Clone)]
 pub struct Mastary {
-  windows: Set<WinID>,
-  pub(crate) panels: iced::widget::pane_grid::State<panel::Panels>,
+  windows: WindowController,
   pub(crate) theme: Theme,
   global_scale_factor: f32,
   settings: Settings,
@@ -62,16 +60,13 @@ pub struct Mastary {
 pub enum Message {
   InitCompleted,
   Window(WinID, WinEvent),
-  Panel(panel::Message),
+  WindowController(winctl::Message)
 }
 
 impl Default for Mastary {
   fn default() -> Self {
-    let (state, _panel) = iced::widget::pane_grid::State::new(panel::Panels::Greetings);
-
     Self {
-      windows: Set::new(),
-      panels: state,
+      windows: WindowController::new(),
       theme: Theme::Nord,
       global_scale_factor: 1.2f32,
       settings: Settings::default(),
@@ -95,21 +90,16 @@ impl Mastary {
   }
 
   pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
-    let panel = panel::Panels::view(self)
-      .map(Message::Panel);
-
-    panel
+    self.windows.view(id).map(Message::WindowController)
   }
 
   pub fn update(&mut self, msg: Message) {
     match msg {
       Message::Window(window_id, window_event) => {
-        update_window_events(self, window_id, window_event);
+
       }
 
-      Message::Panel(msg) => {
-        panel::Panels::update(self, msg);
-      }
+      Message::WindowController(event) => {}
 
       Message::InitCompleted => {}
     }
@@ -133,24 +123,5 @@ impl Mastary {
 
   pub fn scale_factor(&self, id: WinID) -> f32 {
     self.global_scale_factor
-  }
-}
-
-fn update_window_events(state: &mut Mastary, window_id: WinID, window_event: WinEvent) {
-  match window_event {
-    iced::window::Event::Opened {
-      position: _,
-      size: _,
-    } => {
-      tracing::info!("new window {}", window_id);
-      state.windows.insert(window_id);
-    }
-
-    iced::window::Event::Closed => {
-      state.windows.remove(&window_id);
-      tracing::info!("window {} closed", window_id);
-    }
-
-    _ => {}
   }
 }
