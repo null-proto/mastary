@@ -1,11 +1,14 @@
+// use iced::Alignment;
 use iced::widget::container;
 use iced::widget::pane_grid;
-use iced::widget::pane_grid::Pane;
 use iced::widget::pane_grid::Axis;
 use iced::widget::pane_grid::DragEvent;
+use iced::widget::pane_grid::Pane;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text;
-use iced::Alignment;
+
+mod greeting;
+mod title;
 
 #[derive(Debug, Default, Clone)]
 pub enum Panels {
@@ -17,41 +20,53 @@ pub enum Panels {
 pub enum Message {
   PanelDrag(DragEvent),
   PanelsResize(ResizeEvent),
-  PanelClose,
+  PanelClose(Pane),
   PanelCreate(Axis, Pane),
+  PanelFocusChange(Pane),
   PanelMaximized,
   PanelUnMaximized,
 }
 
-impl Panels {
-  pub fn new() -> Self {
-    Panels::Greetings
+impl<'a> Panels {
+  fn present(
+    &'a self,
+    state: &'a crate::Mastary,
+    id: Pane,
+    maximized: bool,
+  ) -> pane_grid::Content<'a, Message> {
+    match self {
+      Panels::Greetings => pane_grid::Content::new(greeting::view(state, id, self, maximized))
+        .style(container::bordered_box)
+        .title_bar(self.title(state, id ,maximized)),
+    }
   }
 
-  pub fn view(state: &crate::Mastary) -> iced::Element<'_, Message> {
+  fn title(&'a self, state: &'a crate::Mastary, id: Pane ,maximized: bool) -> pane_grid::TitleBar<'a, Message> {
+    match self {
+      Panels::Greetings => {
+        title::view(state, id, self, maximized)
+      },
+    }
+  }
+
+  pub fn view(state: &'a crate::Mastary) -> iced::Element<'a, Message> {
     let surface = pane_grid(&state.panels, |id, panel, maximized| {
-      pane_grid::Content::new(
-        container(text!("--"))
-          .padding(10)
-          .style(container::bordered_box)
-          .width(iced::FillPortion(400))
-          ,
-      )
-      .title_bar(pane_grid::TitleBar::new(panel.title()))
+      panel.present(state, id, maximized)
     })
-    .spacing(10);
+    .spacing(6)
+    .on_resize(8, Message::PanelsResize)
+    .on_click(Message::PanelFocusChange)
+    .on_drag(Message::PanelDrag);
 
-    surface.into()
-  }
-
-  pub fn title(&self) -> iced::Element<'_, Message> {
-    text("hello").into()
+    container(surface)
+      .padding(6)
+      .into()
   }
 
   pub fn update(state: &mut crate::Mastary, msg: Message) {
     match msg {
       Message::PanelCreate(axis, pane) => {
-        state.panels.split(axis, pane, Panels::Greetings );
+        state.panels.split(axis, pane, Panels::Greetings);
       }
 
       Message::PanelsResize(ResizeEvent { split, ratio }) => {
@@ -62,7 +77,11 @@ impl Panels {
         state.panels.drop(pane, target);
       }
 
-      Message::PanelClose => {}
+      Message::PanelFocusChange(_pane) =>{}
+
+      Message::PanelClose(pane) => {
+        state.panels.close(pane);
+      }
 
       _ => {}
     }

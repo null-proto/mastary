@@ -1,6 +1,6 @@
 [package]
 name = "mastary"
-version = "0.0.1-alpha.0+init"
+version = "0.0.1-alpha.1+init"
 edition = "2024"
 readme = "README.md"
 

@@ -52,7 +52,7 @@ pub fn init_ui() {
 pub struct Mastary {
   windows: Set<WinID>,
   pub(crate) panels: iced::widget::pane_grid::State<panel::Panels>,
-  theme: Theme,
+  pub(crate) theme: Theme,
   global_scale_factor: f32,
   settings: Settings,
   title: String,
