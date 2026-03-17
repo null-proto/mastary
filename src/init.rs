@@ -11,17 +11,6 @@ use crate::window::Window;
 
 pub fn init_ui() {
   info!("initializing ui ...");
-
-  // iced::application( || { ui::State::new() } , ui::update, ui::view)
-  //   .decorations(false)
-  //   .default_font(font)
-  //   .theme(iced::Theme::CatppuccinMocha)
-  //   // .subscription(AppMain::subscribe)
-  //   .run()
-  //   .unwrap();
-
-  // font setup seems skeptic
-  //
   let default_font = iced::Font::with_name("VictorMono Nerd Font Mono");
 
   match iced::daemon(move || Mastary::new(), Mastary::update, Mastary::view)
@@ -42,8 +31,7 @@ pub fn init_ui() {
     }
   }
 
-  // it blocks
-  //
+  // TODO: daemon should exit if all windows're closed
   info!("exiting ...");
 }
 
@@ -51,7 +39,7 @@ pub fn init_ui() {
 pub struct Mastary {
   theme: Theme,
   theme_ext: crate::theme::Theme,
-  global_scale_factor: f32,
+  scale_factor: f32,
   settings: Settings,
   title: String,
   window: Vec<Window>,
@@ -60,6 +48,7 @@ pub struct Mastary {
 #[derive(Debug, Clone)]
 pub enum Message {
   InitCompleted,
+  FontLoaded,
   MainWindowCreate(Id),
   MainWindowDestroy(Id),
   WindowEvent((Id, WinEvent)),
@@ -73,7 +62,7 @@ impl Default for Mastary {
     Self {
       theme,
       theme_ext,
-      global_scale_factor: 1.2f32,
+      scale_factor: 1.2f32,
       settings: Settings::default(),
       title: String::default(),
       window: Default::default(),
@@ -81,7 +70,6 @@ impl Default for Mastary {
   }
 }
 
-#[allow(unused)]
 impl Mastary {
   pub fn new() -> (Self, iced::Task<Message>) {
     let mastary = Mastary::default();
@@ -90,8 +78,11 @@ impl Mastary {
 
     let (_window_id, window_create) = iced::window::open(iced::window::Settings::default());
 
+    let icon_font = iced::font::load(include_bytes!( "../fonts/VictorMonoNerdFont-Bold.ttf" ));
+
     tasks.push(window_create.map(Message::MainWindowCreate));
 
+    tasks.push(icon_font.map(|_|Message::FontLoaded));
     (mastary, Task::batch(tasks))
   }
 
@@ -117,6 +108,10 @@ impl Mastary {
   pub fn update(&mut self, msg: Message) {
     match msg {
       Message::InitCompleted => {}
+
+      Message::FontLoaded => {
+        tracing::info!("icon font loaded successfully ...");
+      }
 
       Message::Interface(id, event) => {
         if let Some(w) = self.window.iter_mut().find(|wi| wi.id == id) {
@@ -154,7 +149,7 @@ impl Mastary {
     }
   }
 
-  pub fn title(&self, id: Id) -> String {
+  pub fn title(&self, _id: Id) -> String {
     self.title.clone()
   }
 
@@ -165,7 +160,7 @@ impl Mastary {
     iced::Subscription::batch(subs)
   }
 
-  pub fn theme(&self, id: Id) -> iced::Theme {
+  pub fn theme(&self, _id: Id) -> iced::Theme {
     self.theme.clone()
   }
 
@@ -173,7 +168,7 @@ impl Mastary {
     self.settings.clone()
   }
 
-  pub fn scale_factor(&self, id: Id) -> f32 {
-    self.global_scale_factor
+  pub fn scale_factor(&self, _id: Id) -> f32 {
+    self.scale_factor
   }
 }
