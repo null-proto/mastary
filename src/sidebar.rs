@@ -13,7 +13,7 @@ pub enum Message {
   ShrinkOff,
   ShrinkToggle,
   AddTab(String),
-  RemoveTab(String),
+  RemoveTab(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -77,7 +77,9 @@ impl SideBar {
         self.tabs.push(s);
       }
 
-      Message::RemoveTab(s) => {}
+      Message::RemoveTab(s) => {
+        self.tabs.remove(s);
+      }
     }
   }
 }

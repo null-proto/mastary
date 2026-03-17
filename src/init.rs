@@ -48,7 +48,7 @@ pub struct Mastary {
 #[derive(Debug, Clone)]
 pub enum Message {
   InitCompleted,
-  FontLoaded,
+  FontLoaded(bool),
   MainWindowCreate(Id),
   MainWindowDestroy(Id),
   WindowEvent((Id, WinEvent)),
@@ -62,7 +62,7 @@ impl Default for Mastary {
     Self {
       theme,
       theme_ext,
-      scale_factor: 1.2f32,
+      scale_factor: 1.0,
       settings: Settings::default(),
       title: String::default(),
       window: Default::default(),
@@ -81,16 +81,18 @@ impl Mastary {
     let icon_font = iced::font::load(include_bytes!( "../fonts/VictorMonoNerdFont-Bold.ttf" ));
 
     tasks.push(window_create.map(Message::MainWindowCreate));
+    tasks.push(icon_font.map(|r|Message::FontLoaded(r.is_ok())));
 
-    tasks.push(icon_font.map(|_|Message::FontLoaded));
     (mastary, Task::batch(tasks))
   }
 
   pub fn view(&self, id: Id) -> iced::Element<'_, Message> {
     if let Some(w) = &self.window.iter().find(|wi| wi.id == id) {
-      w.view().map(move |e| Message::Interface(id, e))
+      w.view(&self.theme_ext).map(move |e| Message::Interface(id, e))
     } else {
       // FATAL: window id doesn't exists in the state
+      //
+      // this won't happen in normal case
       iced::widget::container(
         iced::widget::column![
           iced::widget::text(format!("FATAL : Window not found for ID({})", id)),
@@ -109,8 +111,8 @@ impl Mastary {
     match msg {
       Message::InitCompleted => {}
 
-      Message::FontLoaded => {
-        tracing::info!("icon font loaded successfully ...");
+      Message::FontLoaded(r) => {
+        tracing::info!("icon font loaded: {}", r);
       }
 
       Message::Interface(id, event) => {
@@ -137,11 +139,27 @@ impl Mastary {
           size: _,
         } => {
           tracing::info!("new window {}", id);
-          // window creation is explicit
+          if let Some(window_index) = self.window.iter().enumerate().find_map(|(i,w)| if w.id==id { Some(i) } else { None } ) {
+            self.window[window_index].is_presended = true;
+          }
         }
 
         WinEvent::Closed => {
+          if let Some(window_index) = self.window.iter().enumerate().find_map(|(i,w)| if w.id==id { Some(i) } else { None } ) {
+            self.window.remove(window_index);
+          }
           tracing::info!("window {} closed", id);
+        }
+
+        WinEvent::Focused => {
+          // TODO: fix this
+          if let Some(id_) = self.window.get(0) && id_.id != id {
+            if let Some(f_window_index) = self.window.iter().enumerate().find_map(|(i,w)| if w.id==id { Some(i) } else { None } ) {
+              tracing::debug!("window swapping, index ({}) to 0",id);
+              let f_window = self.window.remove(f_window_index);
+              self.window.insert(0, f_window);
+            }
+          }
         }
 
         _ => {}

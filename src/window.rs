@@ -6,6 +6,7 @@ use crate::sidebar;
 #[derive(Clone, Debug)]
 pub struct Window {
   pub(crate) id: Id,
+  pub(crate) is_presended: bool,
   inner: WindowKind,
 }
 
@@ -30,10 +31,10 @@ impl<'a> Window {
       pane: pane::PaneController::new(),
     };
 
-    Self { id, inner: kind }
+    Self { id, is_presended: false ,inner: kind }
   }
 
-  pub fn view(self: &'a Self) -> iced::Element<'a, Message> {
+  pub fn view(self: &'a Self, theme: &crate::Theme) -> iced::Element<'a, Message> {
     match &self.inner {
       WindowKind::MainWindow { sidebar, pane } => iced::widget::row![
         sidebar.view().map(Message::SideBar),

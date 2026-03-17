@@ -44,3 +44,5 @@ opt-level = 1
 [profile.release]
 lto = "fat"
 codegen-units = 1
+strip = true
+opt-level = 3
