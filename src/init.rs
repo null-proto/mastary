@@ -4,10 +4,10 @@ use iced::Settings;
 use iced::Task;
 use iced::Theme;
 use iced::window::Event as WinEvent;
-use iced::window::Id as WinID;
+use iced::window::Id;
 
-use crate::winctl;
-use crate::winctl::WindowController;
+use crate::window;
+use crate::window::Window;
 
 pub fn init_ui() {
   info!("initializing ui ...");
@@ -49,19 +49,21 @@ pub fn init_ui() {
 
 #[derive(Debug, Clone)]
 pub struct Mastary {
-  windows: WindowController,
   theme: Theme,
   theme_ext: crate::theme::Theme,
   global_scale_factor: f32,
   settings: Settings,
   title: String,
+  window: Vec<Window>,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
   InitCompleted,
-  Window(WinID, WinEvent),
-  WindowController(winctl::Message)
+  MainWindowCreate(Id),
+  MainWindowDestroy(Id),
+  WindowEvent((Id, WinEvent)),
+  Interface(Id, window::Message),
 }
 
 impl Default for Mastary {
@@ -69,12 +71,12 @@ impl Default for Mastary {
     let (theme_ext, theme) = crate::theme::Theme::cattppuccin_mocha();
 
     Self {
-      windows: WindowController::new(),
       theme,
       theme_ext,
       global_scale_factor: 1.2f32,
       settings: Settings::default(),
       title: String::default(),
+      window: Default::default(),
     }
   }
 }
@@ -86,41 +88,84 @@ impl Mastary {
 
     let mut tasks: Vec<Task<Message>> = vec![];
 
-    tasks.push( winctl::WindowController::create_main_window().map(|id| Message::WindowController(id)));
+    let (_window_id, window_create) = iced::window::open(iced::window::Settings::default());
+
+    tasks.push(window_create.map(Message::MainWindowCreate));
 
     (mastary, Task::batch(tasks))
   }
 
-  pub fn view(&self, id: WinID) -> iced::Element<'_, Message> {
-    self.windows.view(id).map(Message::WindowController)
+  pub fn view(&self, id: Id) -> iced::Element<'_, Message> {
+    if let Some(w) = &self.window.iter().find(|wi| wi.id == id) {
+      w.view().map(move |e| Message::Interface(id, e))
+    } else {
+      // FATAL: window id doesn't exists in the state
+      iced::widget::container(
+        iced::widget::column![
+          iced::widget::text(format!("FATAL : Window not found for ID({})", id)),
+          iced::widget::text(format!("{:?}", self))
+        ]
+        .spacing(10),
+      )
+      .center(iced::Fill)
+      .style(iced::widget::container::bordered_box)
+      .padding(20)
+      .into()
+    }
   }
 
   pub fn update(&mut self, msg: Message) {
     match msg {
-      Message::Window(window_id, window_event) => {
-        tracing::trace!("window event: {},{:?}", window_id , window_event);
-      }
-
-      Message::WindowController(event) => {
-        self.windows.update(event);
-      }
-
       Message::InitCompleted => {}
+
+      Message::Interface(id, event) => {
+        if let Some(w) = self.window.iter_mut().find(|wi| wi.id == id) {
+          w.update(event);
+        } else {
+          tracing::error!("FATAL : Window not found for ID({}), {:?}", id, event);
+        }
+      }
+
+      Message::MainWindowCreate(id) => {
+        tracing::info!("new main window {}", id);
+        let w = Window::default_main(id);
+        self.window.push(w);
+      }
+
+      Message::MainWindowDestroy(id) => {
+        tracing::info!("main window {} closed", id);
+      }
+
+      Message::WindowEvent((id, event)) => match event {
+        WinEvent::Opened {
+          position: _,
+          size: _,
+        } => {
+          tracing::info!("new window {}", id);
+          // window creation is explicit
+        }
+
+        WinEvent::Closed => {
+          tracing::info!("window {} closed", id);
+        }
+
+        _ => {}
+      },
     }
   }
 
-  pub fn title(&self, id: WinID) -> String {
+  pub fn title(&self, id: Id) -> String {
     self.title.clone()
   }
 
   pub fn subscribe(&self) -> iced::Subscription<Message> {
     let mut subs = vec![];
-    subs.push(WindowController::sunscribe_window_events().map(Message::WindowController) );
+    subs.push(iced::window::events().map(Message::WindowEvent));
 
     iced::Subscription::batch(subs)
   }
 
-  pub fn theme(&self, id: WinID) -> iced::Theme {
+  pub fn theme(&self, id: Id) -> iced::Theme {
     self.theme.clone()
   }
 
@@ -128,7 +173,7 @@ impl Mastary {
     self.settings.clone()
   }
 
-  pub fn scale_factor(&self, id: WinID) -> f32 {
+  pub fn scale_factor(&self, id: Id) -> f32 {
     self.global_scale_factor
   }
 }
