@@ -82,9 +82,7 @@ impl Mastary {
 
     let mut tasks: Vec<Task<Message>> = vec![];
 
-    let (window_id, window_open_task) = iced::window::open(iced::window::Settings::default());
-
-    tasks.push(window_open_task.map(|_| Message::InitCompleted));
+    tasks.push( winctl::WindowController::create_main_window().map(|id| Message::WindowController(id)));
 
     (mastary, Task::batch(tasks))
   }
@@ -96,10 +94,12 @@ impl Mastary {
   pub fn update(&mut self, msg: Message) {
     match msg {
       Message::Window(window_id, window_event) => {
-
+        tracing::trace!("window event: {},{:?}", window_id , window_event);
       }
 
-      Message::WindowController(event) => {}
+      Message::WindowController(event) => {
+        self.windows.update(event);
+      }
 
       Message::InitCompleted => {}
     }
@@ -110,7 +110,10 @@ impl Mastary {
   }
 
   pub fn subscribe(&self) -> iced::Subscription<Message> {
-    iced::Subscription::none()
+    let mut subs = vec![];
+    subs.push(WindowController::sunscribe_window_events().map(Message::WindowController) );
+
+    iced::Subscription::batch(subs)
   }
 
   pub fn theme(&self, id: WinID) -> iced::Theme {
