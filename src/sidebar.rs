@@ -1,6 +1,7 @@
 use iced::Length::Fill;
 use iced::widget::container;
-use iced::widget::row;
+use iced::widget::column;
+use iced::widget::space;
 use iced::widget::text;
 
 #[derive(Debug, Clone)]
@@ -27,9 +28,9 @@ impl SideBar {
   }
 
   pub fn view<'a>(self: &'a Self) -> iced::Element<'a, Message> {
-    let bar = container(row![
+    let bar = container(column![
       text!("greetings"),
-      // space().height(Fill),
+      space().height(Fill),
       text!("new window"),
     ])
     .padding(10)
@@ -38,7 +39,7 @@ impl SideBar {
     .max_width(100)
     .style(container::bordered_box);
 
-    container(bar).padding(10).into()
+    container(bar).padding(6).into()
   }
 
   pub fn update(&mut self, msg: Message) {

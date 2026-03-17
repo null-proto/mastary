@@ -50,7 +50,8 @@ pub fn init_ui() {
 #[derive(Debug, Clone)]
 pub struct Mastary {
   windows: WindowController,
-  pub(crate) theme: Theme,
+  theme: Theme,
+  theme_ext: crate::theme::Theme,
   global_scale_factor: f32,
   settings: Settings,
   title: String,
@@ -65,9 +66,12 @@ pub enum Message {
 
 impl Default for Mastary {
   fn default() -> Self {
+    let (theme_ext, theme) = crate::theme::Theme::cattppuccin_mocha();
+
     Self {
       windows: WindowController::new(),
-      theme: Theme::Nord,
+      theme,
+      theme_ext,
       global_scale_factor: 1.2f32,
       settings: Settings::default(),
       title: String::default(),

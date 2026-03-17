@@ -1541,6 +1541,7 @@ name = "mastary"
 version = "0.0.1-alpha.1+init"
 dependencies = [
  "iced",
+ "pin-project",
  "tokio",
  "tracing",
  "tracing-subscriber",

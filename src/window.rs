@@ -3,8 +3,6 @@ use iced::window::Id;
 use crate::pane;
 use crate::sidebar;
 
-
-
 #[derive(Clone, Debug)]
 pub struct Window {
   pub(crate) id: Id,
@@ -25,8 +23,6 @@ enum WindowKind {
   },
 }
 
-
-
 impl<'a> Window {
   pub fn default_main(id: Id) -> Self {
     let kind = WindowKind::MainWindow {
@@ -34,10 +30,7 @@ impl<'a> Window {
       pane: pane::PaneController::new(),
     };
 
-    Self {
-      id,
-      inner: kind,
-    }
+    Self { id, inner: kind }
   }
 
   pub fn view(self: &'a Self) -> iced::Element<'a, Message> {

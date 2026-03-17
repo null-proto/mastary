@@ -6,10 +6,10 @@ use std::collections::HashSet;
 use crate::window;
 use crate::window::Window;
 
+
 #[derive(Clone, Debug)]
 pub struct WindowController {
   ids: HashSet<Id>,
-  main_window: Option<Window>,
   window: Vec<Window>,
 }
 
@@ -18,7 +18,7 @@ pub enum Message {
   MainWindowCreate(Id),
   MainWindowDestroy(Id),
   WindowEvent((Id, Event) ),
-  UI(window::Message),
+  Interface(Id ,window::Message),
 }
 
 impl WindowController {
@@ -34,18 +34,13 @@ impl WindowController {
   pub fn new() -> Self {
     Self {
       ids: Default::default(),
-      main_window: None,
       window: Default::default(),
     }
   }
 
   pub fn view(&self, id: Id) -> iced::Element<'_, Message> {
-    if let Some(mw) = &self.main_window
-      && mw.id == id
-    {
-      mw.view().map(Message::UI)
-    } else if let Some(w) = &self.window.iter().find(|wi| wi.id == id) {
-      w.view().map(Message::UI)
+    if let Some(w) = &self.window.iter().find(|wi| wi.id == id) {
+      w.view().map(move |e| Message::Interface(id , e))
     } else {
       // FATAL: window id doesn't exists in the state
       iced::widget::container(
@@ -64,16 +59,22 @@ impl WindowController {
 
   pub fn update(&mut self, msg: Message) {
     match msg {
-      Message::UI(_event) => {}
+      Message::Interface(id,event) => {
+        if let Some(w) = self.window.iter_mut().find(|wi| wi.id == id) {
+          w.update(event);
+        } else {
+          tracing::error!("FATAL : Window not found for ID({}), {:?}",id , event );
+        }
+      }
 
       Message::MainWindowCreate(id) => {
         tracing::info!("new main window {}", id);
         let w = Window::default_main(id);
-        self.main_window = Some(w);
+        self.window.push(w);
       }
 
       Message::MainWindowDestroy(id) => {
-        self.main_window = None;
+      //   self.active_window = None;
         tracing::info!("main window {} closed", id);
       }
 
@@ -83,8 +84,12 @@ impl WindowController {
           size: _,
         } => {
           tracing::info!("new window {}", id);
-          let w = window::Window::default_main(id);
-          self.window.push(w);
+
+          // window creation is explicit
+          //
+          // let w = window::Window::default_main(id);
+          // self.window.push(w);
+
           self.ids.insert(id);
         }
 
@@ -93,6 +98,10 @@ impl WindowController {
           tracing::info!("window {} closed", id);
         }
 
+        // iced::window::Event::Focused => {
+        //   self.active_window = self.window.iter_mut().find(|wi| wi.id == id);
+        // }
+        //
         _ => {}
       },
     }

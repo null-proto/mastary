@@ -21,6 +21,7 @@ publish = false
 
 [dependencies]
 iced = { version = "0.14.0", features = ["tokio"] }
+pin-project = "1.1.11"
 tokio = { version = "1.50.0", features = ["net", "fs", "time"] }
 tracing = { version = "0.1.44", features = ["async-await"] }
 tracing-subscriber = { version = "0.3.22", features = ["tracing"] }
