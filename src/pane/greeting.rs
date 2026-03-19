@@ -31,7 +31,6 @@ pub fn view(
     ]
     .on_link_click(move |axis| Message::PaneCreate(axis, pane))
   ])
-  .style(container::bordered_box)
   .width(iced::Fill)
   .height(iced::Fill)
   .into()

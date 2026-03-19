@@ -91,7 +91,6 @@ impl<'a> PaneKind {
   ) -> pane_grid::Content<'a, Message> {
     match self {
       PaneKind::Greeting => pane_grid::Content::new(greeting::view(id, self, maximized))
-        .style(container::bordered_box)
         .title_bar(self.title(id)),
     }
   }

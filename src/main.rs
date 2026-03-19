@@ -71,6 +71,11 @@ fn init_tracing() {
 
 
 
+#[cfg(not(target_os = "linux"))]
+compile_error!("this project only supports Linux");
+
+
+#[cfg(target_os = "linux")]
 fn main() {
   init_tracing();
 

@@ -1,3 +1,4 @@
+use iced::widget::container::transparent;
 use tracing::info;
 
 use iced::Settings;
@@ -76,7 +77,25 @@ impl Mastary {
 
     let mut tasks: Vec<Task<Message>> = vec![];
 
-    let (_window_id, window_create) = iced::window::open(iced::window::Settings::default());
+
+    // default settings
+    let settings = iced::window::Settings {
+      platform_specific : iced::window::settings::PlatformSpecific {
+        application_id: "".to_string(),
+        override_redirect: true,
+      },
+      size: iced::Size::new(600.0, 800.0),
+      min_size: Some(iced::Size::new(400.0, 800.0)),
+      fullscreen: false,
+      decorations: false,
+      transparent: true,
+      exit_on_close_request: false,
+      ..Default::default()
+    };
+
+    tracing::trace!("using window settings: {:#?}" , settings);
+
+    let (_window_id, window_create) = iced::window::open(settings);
 
     let icon_font = iced::font::load(include_bytes!( "../fonts/VictorMonoNerdFont-Bold.ttf" ));
 
